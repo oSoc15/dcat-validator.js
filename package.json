@@ -1,0 +1,24 @@
+{
+  "name": "validator",
+  "version": "1.0.0",
+  "description": "This is a library to validate DCAT syntax",
+  "main": "validator.js",
+  "dependencies": {
+    "browserify": "^10.2.4",
+    "n3": "^0.4.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oSoc15/dcat-validator.js.git"
+  },
+  "author": "Stan Callewaert",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/oSoc15/dcat-validator.js/issues"
+  },
+  "homepage": "https://github.com/oSoc15/dcat-validator.js#readme"
+}
