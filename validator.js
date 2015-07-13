@@ -1,123 +1,151 @@
 //Include all the n3 libraries Ruben Verborgh made
-var N3 = require('./node_modules/n3/lib/n3');
-require('./node_modules/n3/lib/n3').Util(global);
+var N3 = require('./node_modules/n3/n3');
+require('./node_modules/n3/n3').Util(global);
 
 //This line makes sure that the validate function can be used in different js file
 if(window) window.validate = validate;
 
 //The validation function with a callback to start the code after this function is done
 function validate(dcat, callback) {
-    
+
     //create an array with errors and warnings that contain objects with errror messages
-	var feedback = {};
-	feedback['errors'] = [];
-	feedback['warnings'] = [];  
+    var feedback = {};
+    feedback['errors'] = [];
+    feedback['warnings'] = [];  
 
-	//variable that can parse rdf file to URI's
-	var parser = N3.Parser();
+    //variable that can parse rdf file to URI's
+    var parser = N3.Parser();
 
-	//variable that can store all the triplets of the rdf file
-	var store = N3.Store();
+    //variable that can store all the triplets of the rdf file
+    var store = N3.Store();
 
-	parser.parse(dcat, function (error, triple, prefixes) {
+    //variable that can access the functionality to check if a variable is a literal or a URI
+    var N3Util = N3.Util;
 
-		//if there are triples left, store them.
-		//if there aren't find the errors and warnings
-		if (triple) {
-			store.addTriple(triple);
-		} else {
+    parser.parse(dcat, function (error, triple, prefixes) {
 
-			//Check Dataset class
-			var datasets = store.find(null, null , "http://www.w3.org/ns/dcat#Dataset");
-		
-			if(datasets.length == 0) feedback['errors'].push({"error":"The class Dataset is mandatory"});
+        //if there are triples left, store them.
+        //if there aren't find the errors and warnings
+        if (triple) {
+            store.addTriple(triple);
+        } else {
 
-			for (key in datasets) {
-				var properties = store.find(datasets[key].subject, null, null);
+            //Check Dataset class
+            var datasets = store.find(null, null , "http://www.w3.org/ns/dcat#Dataset");
+        
+            if(datasets.length == 0) feedback['errors'].push({"error":"The class Dataset is mandatory"});
 
-				for(propKey in properties) {
-					for(propRulesKey in validatorRules['Dataset'].properties) {
-						if(properties[propKey].predicate == validatorRules['Dataset'].properties[propRulesKey].URI) {
-							//Check if correct object
-							break;
-						}
-					}
-				}
-			}
+            for (key in datasets) {
+                var properties = store.find(datasets[key].subject, null, null);
 
-			//Check Distrubution class
-			var distributions = store.find(null, null , "http://www.w3.org/ns/dcat#Distribution");
+                for(propRulesKey in validatorRules['Dataset'].properties) {
+                    for(propKey in properties) {
+                        if(properties[propKey].predicate == validatorRules['Dataset'].properties[propRulesKey].URI) {
+                            if(validatorRules['Dataset'].properties[propRulesKey].Range == "rdfs:Literal") {
+                                if(!N3Util.isLiteral(properties[propKey].object)) {
+                                    feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['Dataset'].properties[propRulesKey].name + ", in the Dataset class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
+                                }
+                            }
 
-			if(distributions.length == 0) feedback['warnings'].push({"error":"The class Distribution is recommended"});
+                            break;
+                        }
+                    }
+                }
+            }
 
-			for (key in distributions) {
-				var properties = store.find(distributions[key].subject, null, null);
-				
-				for(propKey in properties) {
-					for(propRulesKey in validatorRules['Distribution'].properties) {
-						if(properties[propKey].predicate == validatorRules['Distribution'].properties[propRulesKey].URI) {
-							//Check if correct object
-							break;
-						}
-					}
-				}
-			}
+            //Check Distrubution class
+            var distributions = store.find(null, null , "http://www.w3.org/ns/dcat#Distribution");
 
-			//Check Catalog class
-			var catalogs = store.find(null, null , "http://www.w3.org/ns/dcat#Catalog");
+            if(distributions.length == 0) feedback['warnings'].push({"error":"The class Distribution is recommended"});
 
-			if(catalogs.length > 1) {
-				feedback['errors'].push({"error":"Multiple Catalog classes are initialized"});
-			} else {
-				if(catalogs.length == 1) {
-					var properties = store.find(catalogs[0].subject, null, null);
-				
-					for(propKey in properties) {
-						for(propRulesKey in validatorRules['Catalog'].properties) {
-							if(properties[propKey].predicate == validatorRules['Catalog'].properties[propRulesKey].URI) {
-								//Check if correct object
-								break;
-							}
-						}
-					}
-				} else {
-					feedback['errors'].push({"error":"The class Catalog is mandatory"});
-				}
-			}
+            for (key in distributions) {
+                var properties = store.find(distributions[key].subject, null, null);
+                
+                for(propRulesKey in validatorRules['Distribution'].properties) {
+                    for(propKey in properties) {                    
+                        if(properties[propKey].predicate == validatorRules['Distribution'].properties[propRulesKey].URI) {
+                            if(validatorRules['Distribution'].properties[propRulesKey].Range == "rdfs:Literal") {
+                                if(!N3Util.isLiteral(properties[propKey].object)) {
+                                    feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['Distribution'].properties[propRulesKey].name + ", in the Distribution class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
+                                }
+                            }
 
-			//Check CatalogRecord class
-			var catalogRecords = store.find(null, null , "http://www.w3.org/ns/dcat#CatalogRecord");
+                            break;
+                        }
+                    }
+                }
+            }
 
-			if(catalogRecords.length > 1) {
-				feedback['errors'].push({"error":"Multiple CatalogRecord classes are initialized"});
-			} else {
-				if(catalogRecords.length == 1) {
-					var properties = store.find(catalogRecords[0].subject, null, null);
-				
-					for(propKey in properties) {
-						for(propRulesKey in validatorRules['Catalog'].properties) {
-							if(properties[propKey].predicate == validatorRules['Catalog'].properties[propRulesKey].URI) {
-								//Check if correct object
-								break;
-							}
-						}
-					}
-				}
-			}
+            //Check Catalog class
+            var catalogs = store.find(null, null , "http://www.w3.org/ns/dcat#Catalog");
 
-			//Check ConceptScheme class
-			var conceptSchemes = store.find(null, null , "http://www.w3.org/2004/02/skos/core#ConceptScheme");
+            if(catalogs.length > 1) {
+                feedback['errors'].push({"error":"Multiple Catalog classes are initialized"});
+            } else {
+                if(catalogs.length == 1) {
+                    var properties = store.find(catalogs[0].subject, null, null);
+                    
+                    for(propRulesKey in validatorRules['Catalog'].properties) {
+                        for(propKey in properties) {
+                            if(properties[propKey].predicate == validatorRules['Catalog'].properties[propRulesKey].URI) {
+                                if(validatorRules['Catalog'].properties[propRulesKey].Range == "rdfs:Literal") {
+                                    if(!N3Util.isLiteral(properties[propKey].object)) {
+                                        feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['Catalog'].properties[propRulesKey].name + ", in the Catalog class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    feedback['errors'].push({"error":"The class Catalog is mandatory"});
+                }
+            }
+
+            //Check CatalogRecord class
+            var catalogRecords = store.find(null, null , "http://www.w3.org/ns/dcat#CatalogRecord");
+
+            if(catalogRecords.length > 1) {
+                feedback['errors'].push({"error":"Multiple CatalogRecord classes are initialized"});
+            } else {
+                if(catalogRecords.length == 1) {
+                    var properties = store.find(catalogRecords[0].subject, null, null);
+                
+                    for(propRulesKey in validatorRules['CatalogRecord'].properties) {
+                        for(propKey in properties) {
+                            if(properties[propKey].predicate == validatorRules['Catalog'].properties[propRulesKey].URI) {
+                                if(validatorRules['CatalogRecord'].properties[propRulesKey].Range == "rdfs:Literal") {
+                                    if(!N3Util.isLiteral(properties[propKey].object)) {
+                                        feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['CatalogRecord'].properties[propRulesKey].name + ", in the CatalogRecord class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            //Check ConceptScheme class
+            var conceptSchemes = store.find(null, null , "http://www.w3.org/2004/02/skos/core#ConceptScheme");
 
             if(conceptSchemes.length > 1) {
                 feedback['errors'].push({"error":"Multiple ConceptScheme classes are initialized"});
             } else {
                 if(conceptSchemes.length == 1) {
                     var properties = store.find(conceptSchemes[0].subject, null, null);
-                
-                    for(propKey in properties) {
-                        for(propRulesKey in validatorRules['ConceptScheme'].properties) {
+                    
+                    for(propRulesKey in validatorRules['ConceptScheme'].properties) {
+                        for(propKey in properties) {
                             if(properties[propKey].predicate == validatorRules['ConceptScheme'].properties[propRulesKey].URI) {
-                                //Check if correct object
+                                if(validatorRules['ConceptScheme'].properties[propRulesKey].Range == "rdfs:Literal") {
+                                    if(!N3Util.isLiteral(properties[propKey].object)) {
+                                        feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['ConceptScheme'].properties[propRulesKey].name + ", in the ConceptScheme class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
+                                    }
+                                }
+
                                 break;
                             }
                         }
@@ -127,8 +155,8 @@ function validate(dcat, callback) {
                 }
             }
 
-			//Check Concept class
-			var concepts = store.find(null, null , "http://www.w3.org/2004/02/skos/core#Concept");
+            //Check Concept class
+            var concepts = store.find(null, null , "http://www.w3.org/2004/02/skos/core#Concept");
 
             if(conceptSchemes.length > 1) {
                 feedback['errors'].push({"error":"Multiple Concept classes are initialized"});
@@ -139,44 +167,52 @@ function validate(dcat, callback) {
                     for(propKey in properties) {
                         for(propRulesKey in validatorRules['Concept'].properties) {
                             if(properties[propKey].predicate == validatorRules['Concept'].properties[propRulesKey].URI) {
-                                //Check if correct object
+                                if(validatorRules['Concept'].properties[propRulesKey].Range == "rdfs:Literal") {
+                                    if(!N3Util.isLiteral(properties[propKey].object)) {
+                                        feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['Concept'].properties[propRulesKey].name + ", in the Concept class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
+                                    }
+                                }
+
                                 break;
                             }
                         }
                     }
                 } else {
-                    feedback['errors'].push({"error":"The class ConceptScheme is mandatory"});
+                    feedback['errors'].push({"error":"The class Concept is mandatory"});
                 }
             }
 
-			//Check Agent class
-			var agents = store.find(null, null , "http://xmlns.com/foaf/0.1/Agent");
-
-            if(agents.length > 1) {
-                feedback['errors'].push({"error":"Multiple Agents classes are initialized"});
-            } else {
-                if(agents.length == 1) {
-                    var properties = store.find(agents[0].subject, null, null);
-                
+            //Check Agent class
+            var agents = store.find(null, null , "http://xmlns.com/foaf/0.1/Agent");
+            
+            if(agents.length >= 1) {
+                for(key in agents) {
+                    var properties = store.find(agents[key].subject, null, null);
+              
                     for(propKey in properties) {
                         for(propRulesKey in validatorRules['Agent'].properties) {
                             if(properties[propKey].predicate == validatorRules['Agent'].properties[propRulesKey].URI) {
-                                //Check if correct object
+                                if(validatorRules['Agent'].properties[propRulesKey].Range == "rdfs:Literal") {
+                                    if(!N3Util.isLiteral(properties[propKey].object)) {
+                                        feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['Agent'].properties[propRulesKey].name + ", in the Agent class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
+                                    }
+                                }
+
                                 break;
                             }
                         }
                     }
-                } else {
-                    feedback['errors'].push({"error":"The class Agent is mandatory"});
                 }
+            } else {
+                feedback['errors'].push({"error":"The class Agent is mandatory"});
             }
 
-			//do the callback
-      		callback();
-		}
-	});
+            //do the callback
+            callback();
+        }
+    });
 
-	return feedback;
+    return feedback;
 }
 
 //the hard-coded validation rules of DCAT
@@ -185,162 +221,162 @@ var validatorRules = new Array();
 //DCAT Catalog class
 validatorRules['Catalog'] =
 {
-	"class": "Catalog",
-	"prefix": "dcat",
-	"required": "mandatory",
-	"URI": "http://www.w3.org/ns/dcat#Catalog",
-	"properties": [	
-		{
-      		"name": "type",
-      		"prefix": "dct",
-      		"required": "mandatory",
-      		"Range": "rdfs:Literal",
-      		"URI": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-		},
-		{
-      		"name": "title",
-      		"prefix": "dct",
-      		"required": "mandatory",
-      		"Range": "rdfs:Literal",
-      		"URI": "http://purl.org/dc/terms/title"
-		},
-		{
-      		"name": "description",
-      		"prefix": "dct",
-      		"required": "mandatory",
-      		"Range": "rdfs:Literal",
-      		"URI": "http://purl.org/dc/terms/description"
-		},
-		{
-      		"name": "issued",
-      		"prefix": "dct",
-      		"required": "recommended",
-      		"Range": "rdfs:LiteralDateTime",
-      		"URI": "http://purl.org/dc/terms/issued"
-		},
-		{
-      		"name": "modified",
-      		"prefix": "dct",
-      		"required": "recommended",
-      		"Range": "rdfs:LiteralDateTime",
-      		"URI": "http://purl.org/dc/terms/modified"
-		},
-		{
-      		"name": "language",
-      		"prefix": "dct",
-      		"required": "recommended",
-      		"Range": "dct:LinguisticSystem",
-      		"URI": "http://purl.org/dc/terms/language"
-		},
-		{
-      		"name": "publisher",
-      		"prefix": "dct",
-      		"required": "mandatory",
-      		"Range": "foaf:Agent",
-      		"URI": "http://purl.org/dc/terms/publisher"
-		},
-		{
-      		"name": "themes",
-      		"prefix": "dcat",
-      		"required": "recommended",
-      		"Range": "skos:ConceptScheme",
-      		"URI": "http://purl.org/dc/terms/themeTaxonomy"
-		},
-		{
-      		"name": "license",
-      		"prefix": "dct",
-      		"required": "recommended",
-      		"Range": "dct:LicenseDocument",
-      		"URI": "http://purl.org/dc/terms/license"
-		},
-		{
-      		"name": "rigths",
-      		"prefix": "dct",
-      		"required": "optional",
-      		"Range": "dct:RightsStatement",
-      		"URI": "http://purl.org/dc/terms/rights"
-		},
-		{
-      		"name": "spatial",
-      		"prefix": "dct",
-      		"required": "optional",
-      		"Range": "dct:Location",
-      		"URI": "http://purl.org/dc/terms/spatial"
-		},
-		{
-      		"name": "dataset",
-      		"prefix": "dcat",
-      		"required": "mandatory",
-      		"Range": "dcat:Dataset",
-      		"URI": "http://www.w3.org/ns/dcat#dataset"
-		},
-		{
-      		"name": "record",
-      		"prefix": "dcat",
-      		"required": "optional",
-      		"Range": "dcat:CatalogRecord",
-      		"URI": "http://www.w3.org/ns/dcat#record"
-		},
-		{
-      		"name": "homepage",
-      		"prefix": "foaf",
-      		"required": "recommended",
-      		"Range": "foaf:Document",
-      		"URI": "http://xmlns.com/foaf/0.1/homepage"
-		}
-	]
+    "class": "Catalog",
+    "prefix": "dcat",
+    "required": "mandatory",
+    "URI": "http://www.w3.org/ns/dcat#Catalog",
+    "properties": [ 
+        {
+            "name": "type",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "rdfs:Resource",
+            "URI": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        },
+        {
+            "name": "title",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "rdfs:Literal",
+            "URI": "http://purl.org/dc/terms/title"
+        },
+        {
+            "name": "description",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "rdfs:Literal",
+            "URI": "http://purl.org/dc/terms/description"
+        },
+        {
+            "name": "issued",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "rdfs:LiteralDateTime",
+            "URI": "http://purl.org/dc/terms/issued"
+        },
+        {
+            "name": "modified",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "rdfs:LiteralDateTime",
+            "URI": "http://purl.org/dc/terms/modified"
+        },
+        {
+            "name": "language",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "dct:LinguisticSystem",
+            "URI": "http://purl.org/dc/terms/language"
+        },
+        {
+            "name": "publisher",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "foaf:Agent",
+            "URI": "http://purl.org/dc/terms/publisher"
+        },
+        {
+            "name": "themes",
+            "prefix": "dcat",
+            "required": "recommended",
+            "Range": "skos:ConceptScheme",
+            "URI": "http://purl.org/dc/terms/themeTaxonomy"
+        },
+        {
+            "name": "license",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "dct:LicenseDocument",
+            "URI": "http://purl.org/dc/terms/license"
+        },
+        {
+            "name": "rigths",
+            "prefix": "dct",
+            "required": "optional",
+            "Range": "dct:RightsStatement",
+            "URI": "http://purl.org/dc/terms/rights"
+        },
+        {
+            "name": "spatial",
+            "prefix": "dct",
+            "required": "optional",
+            "Range": "dct:Location",
+            "URI": "http://purl.org/dc/terms/spatial"
+        },
+        {
+            "name": "dataset",
+            "prefix": "dcat",
+            "required": "mandatory",
+            "Range": "dcat:Dataset",
+            "URI": "http://www.w3.org/ns/dcat#dataset"
+        },
+        {
+            "name": "record",
+            "prefix": "dcat",
+            "required": "optional",
+            "Range": "dcat:CatalogRecord",
+            "URI": "http://www.w3.org/ns/dcat#record"
+        },
+        {
+            "name": "homepage",
+            "prefix": "foaf",
+            "required": "recommended",
+            "Range": "foaf:Document",
+            "URI": "http://xmlns.com/foaf/0.1/homepage"
+        }
+    ]
 };
 
 //DCAT CatalogRecord class
 validatorRules['CatalogRecord'] =
 {
-  	"class": "CatalogRecord",
-  	"prefix": "dcat",
-  	"required": "optional",
-  	"properties": [
-	    {
-    		"name": "type",
-    		"prefix": "dct",
-    		"required": "mandatory",
-    		"Range": "rdfs:Literal",
-    		"URI": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-  		},
-  		{
-    		"name": "title",
-    		"prefix": "dct",
-    		"required": "mandatory",
-    		"Range": "rdfs:Literal",
-    		"URI": "http://purl.org/dc/terms/title"
-  		},
-  		{
-    		"name": "description",
-    		"prefix": "dct",
-    		"required": "mandatory",
-    		"Range": "rdfs:Literal",
-    		"URI": "http://purl.org/dc/terms/description"
-  		},
-  	    {
-    		"name": "issued",
-    		"prefix": "dct",
-    		"required": "recommended",
-    		"Range": "rdfs:LiteralDateTime",
-    		"URI": "http://purl.org/dc/terms/issued"
-  		},
-  		{
-    		"name": "modified",
-    		"prefix": "dct",
-    		"required": "recommended",
-    		"Range": "rdfs:LiteralDateTime",
-    		"URI": "http://purl.org/dc/terms/modified"
-  		},
-	    {
-	        "name": "primaryTopic",
-	        "prefix": "foaf",
-	        "required": "mandatory",
-	        "Range": "foaf:primaryTopic",
-	        "URI": "http://xmlns.com/foaf/0.1/primaryTopic"
-	    },
-  	]
+    "class": "CatalogRecord",
+    "prefix": "dcat",
+    "required": "optional",
+    "properties": [
+        {
+            "name": "type",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "rdfs:Resource",
+            "URI": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        },
+        {
+            "name": "title",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "rdfs:Literal",
+            "URI": "http://purl.org/dc/terms/title"
+        },
+        {
+            "name": "description",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "rdfs:Literal",
+            "URI": "http://purl.org/dc/terms/description"
+        },
+        {
+            "name": "issued",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "rdfs:LiteralDateTime",
+            "URI": "http://purl.org/dc/terms/issued"
+        },
+        {
+            "name": "modified",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "rdfs:LiteralDateTime",
+            "URI": "http://purl.org/dc/terms/modified"
+        },
+        {
+            "name": "primaryTopic",
+            "prefix": "foaf",
+            "required": "mandatory",
+            "Range": "foaf:primaryTopic",
+            "URI": "http://xmlns.com/foaf/0.1/primaryTopic"
+        },
+    ]
 };
 
 //DCAT Dataset class
@@ -351,54 +387,54 @@ validatorRules['Dataset'] =
     "required": "mandatory",
     "properties": [
         {
-        	"name": "type",
-        	"prefix": "dct",
-        	"required": "mandatory",
-        	"Range": "rdfs:Literal",
-        	"URI": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-      	},
-      	{
-        	"name": "title",
-        	"prefix": "dct",
-        	"required": "mandatory",
-        	"Range": "rdfs:Literal",
-        	"URI": "http://purl.org/dc/terms/title"
-      	},
-      	{
-        	"name": "description",
-        	"prefix": "dct",
-        	"required": "mandatory",
-        	"Range": "rdfs:Literal",
-        	"URI": "http://purl.org/dc/terms/description"
-      	},
-      	{
-        	"name": "issued",
-        	"prefix": "dct",
-        	"required": "recommended",
-        	"Range": "rdfs:LiteralDateTime",
-        	"URI": "http://purl.org/dc/terms/issued"
-      	},
-      	{
-        	"name": "modified",
-        	"prefix": "dct",
-        	"required": "recommended",
-        	"Range": "rdfs:LiteralDateTime",
-        	"URI": "http://purl.org/dc/terms/modified"
-      	},
-      	{
-        	"name": "language",
-        	"prefix": "dct",
-        	"required": "recommended",
-        	"Range": "dct:LinguisticSystem",
-        	"URI": "http://purl.org/dc/terms/language"
-      	},
-      	{
-        	"name": "publisher",
-        	"prefix": "dct",
-        	"required": "mandatory",
-        	"Range": "foaf:Agent",
-        	"URI": "http://purl.org/dc/terms/publisher"
-      	},
+            "name": "type",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "rdfs:Resource",
+            "URI": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        },
+        {
+            "name": "title",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "rdfs:Literal",
+            "URI": "http://purl.org/dc/terms/title"
+        },
+        {
+            "name": "description",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "rdfs:Literal",
+            "URI": "http://purl.org/dc/terms/description"
+        },
+        {
+            "name": "issued",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "rdfs:LiteralDateTime",
+            "URI": "http://purl.org/dc/terms/issued"
+        },
+        {
+            "name": "modified",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "rdfs:LiteralDateTime",
+            "URI": "http://purl.org/dc/terms/modified"
+        },
+        {
+            "name": "language",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "dct:LinguisticSystem",
+            "URI": "http://purl.org/dc/terms/language"
+        },
+        {
+            "name": "publisher",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "foaf:Agent",
+            "URI": "http://purl.org/dc/terms/publisher"
+        },
         {
             "name": "accrualPeriodicity",
             "prefix": "dct",
@@ -480,68 +516,68 @@ validatorRules['Distribution'] =
     "required": "recommended",
     "properties": [
         {
-  	    	"name": "type",
-  	    	"prefix": "dct",
-  	    	"required": "mandatory",
-  	    	"Range": "rdfs:Literal",
-  	    	"URI": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-  	    },
-  	    {
-  	    	"name": "title",
-  	    	"prefix": "dct",
-  	    	"required": "mandatory",
-  	    	"Range": "rdfs:Literal",
-  	    	"URI": "http://purl.org/dc/terms/title"
-  	    },
-  	    {
-  	    	"name": "description",
-  	    	"prefix": "dct",
-  	    	"required": "mandatory",
-  	    	"Range": "rdfs:Literal",
-  	    	"URI": "http://purl.org/dc/terms/description"
-  	    },
+            "name": "type",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "rdfs:Resource",
+            "URI": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        },
         {
-  	    	"name": "issued",
-  	    	"prefix": "dct",
-  	    	"required": "recommended",
-  	    	"Range": "rdfs:LiteralDateTime",
-  	    	"URI": "http://purl.org/dc/terms/issued"
-  	    },
-  	    {
-  	    	"name": "modified",
-  	    	"prefix": "dct",
-  	    	"required": "recommended",
-  	    	"Range": "rdfs:LiteralDateTime",
-  	    	"URI": "http://purl.org/dc/terms/modified"
-  	    },
-  	    {
-  	    	"name": "language",
-  	    	"prefix": "dct",
-  	    	"required": "recommended",
-  	    	"Range": "dct:LinguisticSystem",
-  	    	"URI": "http://purl.org/dc/terms/language"
-  	    },
+            "name": "title",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "rdfs:Literal",
+            "URI": "http://purl.org/dc/terms/title"
+        },
         {
-  	    	"name": "license",
-  	    	"prefix": "dct",
-  	    	"required": "recommended",
-  	    	"Range": "dct:LicenseDocument",
-  	    	"URI": "http://purl.org/dc/terms/license"
-  	    },
-  	    {
-  	    	"name": "rigths",
-  	    	"prefix": "dct",
-  	    	"required": "optional",
-  	    	"Range": "dct:RightsStatement",
-  	    	"URI": "http://purl.org/dc/terms/rights"
-  	    },
-  	    {
-  	    	"name": "spatial",
-  	    	"prefix": "dct",
-  	    	"required": "optional",
-  	    	"Range": "dct:Location",
-  	    	"URI": "http://purl.org/dc/terms/spatial"
-  	    },
+            "name": "description",
+            "prefix": "dct",
+            "required": "mandatory",
+            "Range": "rdfs:Literal",
+            "URI": "http://purl.org/dc/terms/description"
+        },
+        {
+            "name": "issued",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "rdfs:LiteralDateTime",
+            "URI": "http://purl.org/dc/terms/issued"
+        },
+        {
+            "name": "modified",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "rdfs:LiteralDateTime",
+            "URI": "http://purl.org/dc/terms/modified"
+        },
+        {
+            "name": "language",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "dct:LinguisticSystem",
+            "URI": "http://purl.org/dc/terms/language"
+        },
+        {
+            "name": "license",
+            "prefix": "dct",
+            "required": "recommended",
+            "Range": "dct:LicenseDocument",
+            "URI": "http://purl.org/dc/terms/license"
+        },
+        {
+            "name": "rigths",
+            "prefix": "dct",
+            "required": "optional",
+            "Range": "dct:RightsStatement",
+            "URI": "http://purl.org/dc/terms/rights"
+        },
+        {
+            "name": "spatial",
+            "prefix": "dct",
+            "required": "optional",
+            "Range": "dct:Location",
+            "URI": "http://purl.org/dc/terms/spatial"
+        },
         {
             "name": "accessURL",
             "prefix": "dcat",
