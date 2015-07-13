@@ -5,8 +5,16 @@ require('./node_modules/n3/n3').Util(global);
 //This line makes sure that the validate function can be used in different js file
 if(window) window.validate = validate;
 
+//variable that can store all the triplets of the rdf file
+var store;
+
+//variable that can access the functionality to check if a variable is a literal or a URI
+var N3Util;
+
 //The validation function with a callback to start the code after this function is done
 function validate(dcat, callback) {
+    store = N3.Store();
+    N3Util = N3.Util
 
     //create an array with errors and warnings that contain objects with errror messages
     var feedback = {};
@@ -16,12 +24,6 @@ function validate(dcat, callback) {
     //variable that can parse rdf file to URI's
     var parser = N3.Parser();
 
-    //variable that can store all the triplets of the rdf file
-    var store = N3.Store();
-
-    //variable that can access the functionality to check if a variable is a literal or a URI
-    var N3Util = N3.Util;
-
     parser.parse(dcat, function (error, triple, prefixes) {
 
         //if there are triples left, store them.
@@ -30,181 +32,8 @@ function validate(dcat, callback) {
             store.addTriple(triple);
         } else {
 
-            //Check Dataset class
-            var datasets = store.find(null, null , "http://www.w3.org/ns/dcat#Dataset");
-        
-            if(datasets.length == 0) feedback['errors'].push({"error":"The class Dataset is mandatory"});
-
-            for (key in datasets) {
-                var properties = store.find(datasets[key].subject, null, null);
-
-                for(propRulesKey in validatorRules['Dataset'].properties) {
-                    for(propKey in properties) {
-                        if(properties[propKey].predicate == validatorRules['Dataset'].properties[propRulesKey].URI) {
-                            if(validatorRules['Dataset'].properties[propRulesKey].Range == "rdfs:Literal") {
-                                if(!N3Util.isLiteral(properties[propKey].object)) {
-                                    feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['Dataset'].properties[propRulesKey].name + ", in the Dataset class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
-                                }
-                            }
-
-                            break;
-                        }
-                    }
-                }
-            }
-
-            //Check Distrubution class
-            var distributions = store.find(null, null , "http://www.w3.org/ns/dcat#Distribution");
-
-            if(distributions.length == 0) feedback['warnings'].push({"error":"The class Distribution is recommended"});
-
-            for (key in distributions) {
-                var properties = store.find(distributions[key].subject, null, null);
-                
-                for(propRulesKey in validatorRules['Distribution'].properties) {
-                    for(propKey in properties) {                    
-                        if(properties[propKey].predicate == validatorRules['Distribution'].properties[propRulesKey].URI) {
-                            if(validatorRules['Distribution'].properties[propRulesKey].Range == "rdfs:Literal") {
-                                if(!N3Util.isLiteral(properties[propKey].object)) {
-                                    feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['Distribution'].properties[propRulesKey].name + ", in the Distribution class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
-                                }
-                            }
-
-                            break;
-                        }
-                    }
-                }
-            }
-
-            //Check Catalog class
-            var catalogs = store.find(null, null , "http://www.w3.org/ns/dcat#Catalog");
-
-            if(catalogs.length > 1) {
-                feedback['errors'].push({"error":"Multiple Catalog classes are initialized"});
-            } else {
-                if(catalogs.length == 1) {
-                    var properties = store.find(catalogs[0].subject, null, null);
-                    
-                    for(propRulesKey in validatorRules['Catalog'].properties) {
-                        for(propKey in properties) {
-                            if(properties[propKey].predicate == validatorRules['Catalog'].properties[propRulesKey].URI) {
-                                if(validatorRules['Catalog'].properties[propRulesKey].Range == "rdfs:Literal") {
-                                    if(!N3Util.isLiteral(properties[propKey].object)) {
-                                        feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['Catalog'].properties[propRulesKey].name + ", in the Catalog class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
-                                    }
-                                }
-
-                                break;
-                            }
-                        }
-                    }
-                } else {
-                    feedback['errors'].push({"error":"The class Catalog is mandatory"});
-                }
-            }
-
-            //Check CatalogRecord class
-            var catalogRecords = store.find(null, null , "http://www.w3.org/ns/dcat#CatalogRecord");
-
-            if(catalogRecords.length > 1) {
-                feedback['errors'].push({"error":"Multiple CatalogRecord classes are initialized"});
-            } else {
-                if(catalogRecords.length == 1) {
-                    var properties = store.find(catalogRecords[0].subject, null, null);
-                
-                    for(propRulesKey in validatorRules['CatalogRecord'].properties) {
-                        for(propKey in properties) {
-                            if(properties[propKey].predicate == validatorRules['Catalog'].properties[propRulesKey].URI) {
-                                if(validatorRules['CatalogRecord'].properties[propRulesKey].Range == "rdfs:Literal") {
-                                    if(!N3Util.isLiteral(properties[propKey].object)) {
-                                        feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['CatalogRecord'].properties[propRulesKey].name + ", in the CatalogRecord class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
-                                    }
-                                }
-
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            //Check ConceptScheme class
-            var conceptSchemes = store.find(null, null , "http://www.w3.org/2004/02/skos/core#ConceptScheme");
-
-            if(conceptSchemes.length > 1) {
-                feedback['errors'].push({"error":"Multiple ConceptScheme classes are initialized"});
-            } else {
-                if(conceptSchemes.length == 1) {
-                    var properties = store.find(conceptSchemes[0].subject, null, null);
-                    
-                    for(propRulesKey in validatorRules['ConceptScheme'].properties) {
-                        for(propKey in properties) {
-                            if(properties[propKey].predicate == validatorRules['ConceptScheme'].properties[propRulesKey].URI) {
-                                if(validatorRules['ConceptScheme'].properties[propRulesKey].Range == "rdfs:Literal") {
-                                    if(!N3Util.isLiteral(properties[propKey].object)) {
-                                        feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['ConceptScheme'].properties[propRulesKey].name + ", in the ConceptScheme class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
-                                    }
-                                }
-
-                                break;
-                            }
-                        }
-                    }
-                } else {
-                    feedback['errors'].push({"error":"The class ConceptScheme is mandatory"});
-                }
-            }
-
-            //Check Concept class
-            var concepts = store.find(null, null , "http://www.w3.org/2004/02/skos/core#Concept");
-
-            if(conceptSchemes.length > 1) {
-                feedback['errors'].push({"error":"Multiple Concept classes are initialized"});
-            } else {
-                if(concepts.length == 1) {
-                    var properties = store.find(concepts[0].subject, null, null);
-                
-                    for(propKey in properties) {
-                        for(propRulesKey in validatorRules['Concept'].properties) {
-                            if(properties[propKey].predicate == validatorRules['Concept'].properties[propRulesKey].URI) {
-                                if(validatorRules['Concept'].properties[propRulesKey].Range == "rdfs:Literal") {
-                                    if(!N3Util.isLiteral(properties[propKey].object)) {
-                                        feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['Concept'].properties[propRulesKey].name + ", in the Concept class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
-                                    }
-                                }
-
-                                break;
-                            }
-                        }
-                    }
-                } else {
-                    feedback['errors'].push({"error":"The class Concept is mandatory"});
-                }
-            }
-
-            //Check Agent class
-            var agents = store.find(null, null , "http://xmlns.com/foaf/0.1/Agent");
-            
-            if(agents.length >= 1) {
-                for(key in agents) {
-                    var properties = store.find(agents[key].subject, null, null);
-              
-                    for(propKey in properties) {
-                        for(propRulesKey in validatorRules['Agent'].properties) {
-                            if(properties[propKey].predicate == validatorRules['Agent'].properties[propRulesKey].URI) {
-                                if(validatorRules['Agent'].properties[propRulesKey].Range == "rdfs:Literal") {
-                                    if(!N3Util.isLiteral(properties[propKey].object)) {
-                                        feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules['Agent'].properties[propRulesKey].name + ", in the Agent class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
-                                    }
-                                }
-
-                                break;
-                            }
-                        }
-                    }
-                }
-            } else {
-                feedback['errors'].push({"error":"The class Agent is mandatory"});
+            for(key in validatorRules){
+                validateClass(validatorRules[key].class, validatorRules[key].URI, feedback);
             }
 
             //do the callback
@@ -215,15 +44,116 @@ function validate(dcat, callback) {
     return feedback;
 }
 
+var validateClass = function(className, URI, feedback) {
+
+    //find the class in the store
+    var classInfo = store.find(null, null , URI);
+
+    //Check if the class is found in the store
+    if(classInfo.length >= 1) {
+
+        //If there are mutiple classes initialize check if this is permitted
+        if(classInfo.length > 1) {
+            if(!validatorRules[className].mutiple) feedback['errors'].push({"error":"Multiple " + className + "s are initialized"});
+        }
+      
+        /*for(propKey in properties) {
+            for(propRulesKey in validatorRules[className].properties) {
+                if(properties[propKey].predicate == validatorRules[className].properties[propRulesKey].URI) {
+
+                    //Check literals
+                    if(validatorRules[className].properties[propRulesKey].Range == "rdfs:Literal") {
+                        if(!N3Util.isLiteral(properties[propKey].object)) {
+                            feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules[className].properties[propRulesKey].name + ", in the " + className + " class: " + classInfo[key].subject + ", needs to be a rdfs:Literal"});
+                        }
+
+                    //Check datetime literals    
+                    } else if(validatorRules[className].properties[propRulesKey].Range == "rdfs:LiteralDateTime") {
+                        var date = properties[propKey].object;
+                        var dateRemovedQoutes = date.substring(1, date.length-1);
+
+                        if(!N3Util.isLiteral(properties[propKey].object) || isNaN(Date.parse(dateRemovedQoutes))) {
+                            feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules[className].properties[propRulesKey].name + ", in the " + className + " class: " + classInfo[key].subject + ", needs to be a correct ISO 8601 date"});
+                        }
+
+                    //Check decimal literals
+                    } else if(validatorRules[className].properties[propRulesKey].Range == "rdfs:LiteralDecimal") {
+                        if(!N3Util.isLiteral(properties[propKey].object) || isNaN(properties[propKey].object)) {
+                            feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules[className].properties[propRulesKey].name + ", in the " + className + " class: " + classInfo[key].subject + ", needs to be a number"});
+                        }
+
+                    //Check URI's
+                    } else {
+                        if(!N3Util.isIRI(properties[propKey].object)) {
+                            feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules[className].properties[propRulesKey].name + ", in the " + className + " class: " + classInfo[key].subject + ", needs to be a URI"});
+                        }
+                    }
+
+                    break;
+                }
+            }
+        }*/
+
+        for(classObject in classInfo) {
+            console.log(validatorRules[className].properties);
+            for(property in validatorRules[className].properties) {
+                var foundProperty = store.find(classInfo[classObject].subject, validatorRules[className].properties[property].URI, null);
+
+                if(foundProperty.length == 1) {
+                    foundProperty = foundProperty[0];
+
+                    //Check literals
+                    if(validatorRules[className].properties[property].Range == "rdfs:Literal") {
+                        if(!N3Util.isLiteral(foundProperty.object)) {
+                            feedback['errors'].push({"error":"The object: " + foundProperty.object + ", of the property: " + validatorRules[className].properties[property].name + ", in the " + foundProperty.subject + " class: " + validatorRules[className].class + ", needs to be a rdfs:Literal"});
+                        }
+
+                    //Check datetime literals    
+                    } else if(validatorRules[className].properties[property].Range == "rdfs:LiteralDateTime") {
+                        var date = foundProperty.object;
+                        var dateRemovedQoutes = date.substring(1, date.length-1);
+
+                        if(!N3Util.isLiteral(foundProperty.object) || isNaN(Date.parse(dateRemovedQoutes))) {
+                            feedback['errors'].push({"error":"The object: " + foundProperty.object + ", of the property: " + validatorRules[className].properties[property].name + ", in the " + foundProperty.subject + " class: " + validatorRules[className].class + ", needs to be a correct ISO 8601 date"});
+                        }
+
+                    //Check decimal literals
+                    } else if(validatorRules[className].properties[property].Range == "rdfs:LiteralDecimal") {
+                        if(!N3Util.isLiteral(foundProperty.object) || isNaN(foundProperty.object)) {
+                            feedback['errors'].push({"error":"The object: " + foundProperty.object + ", of the property: " + validatorRules[className].properties[property].name + ", in the " + foundProperty.subject + " class: " + validatorRules[className].class + ", needs to be a number"});
+                        }
+
+                    //Check URI's
+                    } else {
+                        if(!N3Util.isIRI(foundProperty.object)) {
+                            feedback['errors'].push({"error":"The object: " + foundProperty.object + ", of the property: " + validatorRules[className].properties[property].name + ", in the " + foundProperty.subject + " class: " + validatorRules[className].class + ", needs to be a URI"});
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+
+        //If the class is mandatory add an error
+        if(validatorRules[className].required == "mandatory") feedback['errors'].push({"error":"The class " + className + " is mandatory"});
+
+        //If the class is required add a warning
+        else if(validatorRules[className].required == "recommended") feedback['warnings'].push({"error":"The class " + className + " is recommended"});
+    }
+};
+
 //the hard-coded validation rules of DCAT
 var validatorRules = new Array();
 
 //DCAT Catalog class
+//Three types of literals: literal, literalDatetime and literalDecimal
+//Rest is a URI
 validatorRules['Catalog'] =
 {
     "class": "Catalog",
     "prefix": "dcat",
     "required": "mandatory",
+    "mutiple": false,
     "URI": "http://www.w3.org/ns/dcat#Catalog",
     "properties": [ 
         {
@@ -333,6 +263,8 @@ validatorRules['CatalogRecord'] =
     "class": "CatalogRecord",
     "prefix": "dcat",
     "required": "optional",
+    "mutiple": false,
+    "URI": "http://www.w3.org/ns/dcat#CatalogRecord",
     "properties": [
         {
             "name": "type",
@@ -385,6 +317,8 @@ validatorRules['Dataset'] =
     "class": "Dataset",
     "prefix": "dcat",
     "required": "mandatory",
+    "mutiple": true,
+    "URI": "http://www.w3.org/ns/dcat#Dataset",
     "properties": [
         {
             "name": "type",
@@ -446,7 +380,7 @@ validatorRules['Dataset'] =
             "name": "identifier",
             "prefix": "dct",
             "required": "optional",
-            "Range": "frdfs:Literal",
+            "Range": "rdfs:Literal",
             "URI": "http://purl.org/dc/terms/identifier"
         },
         {
@@ -514,6 +448,8 @@ validatorRules['Distribution'] =
     "class": "Distribution",
     "prefix": "dcat",
     "required": "recommended",
+    "mutiple": true,
+    "URI": "http://www.w3.org/ns/dcat#Distribution",
     "properties": [
         {
             "name": "type",
@@ -592,13 +528,14 @@ validatorRules['Distribution'] =
             "Range": "rdfs:Resource",
             "URI": "http://www.w3.org/ns/dcat#downloadURL"
         },
-        {
+        //MediaType can either be a literal or a URI
+        /*{
             "name": "mediaType",
             "prefix": "dcat",
             "required": "recommended",
             "Range": "dct:MediaTypeOrExtent",
             "URI": "http://www.w3.org/ns/dcat#mediaType"
-        },
+        },*/
         {
             "name": "format",
             "prefix": "dct",
@@ -622,6 +559,8 @@ validatorRules['ConceptScheme'] =
     "class": "ConceptScheme",
     "prefix": "skos",
     "required": "mandatory",
+    "mutiple": false,
+    "URI": "http://www.w3.org/2004/02/skos/core#ConceptScheme",
     "properties": [
         {
             "name": "title",
@@ -638,6 +577,8 @@ validatorRules['Concept'] =
     "class": "Concept",
     "prefix": "skos",
     "required": "mandatory",
+    "mutiple": true,
+    "URI": "http://www.w3.org/2004/02/skos/core#Concept",
     "properties": [
         {
             "name": "prefLabel",
@@ -654,6 +595,8 @@ validatorRules['Agent'] =
     "class": "Agent",
     "prefix": "foaf",
     "required": "mandatory",
+    "mutiple": true,
+    "URI": "http://xmlns.com/foaf/0.1/Agent",
     "properties": [
         {
             "name": "name",

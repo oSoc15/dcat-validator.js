@@ -6856,6 +6856,9 @@ require('./node_modules/n3/n3').Util(global);
 //This line makes sure that the validate function can be used in different js file
 if(window) window.validate = validate;
 
+//variable that can store all the triplets of the rdf file
+var store = N3.Store();
+
 //The validation function with a callback to start the code after this function is done
 function validate(dcat, callback) {
 
@@ -6866,9 +6869,6 @@ function validate(dcat, callback) {
 
     //variable that can parse rdf file to URI's
     var parser = N3.Parser();
-
-    //variable that can store all the triplets of the rdf file
-    var store = N3.Store();
 
     //variable that can access the functionality to check if a variable is a literal or a URI
     var N3Util = N3.Util;
@@ -6881,8 +6881,12 @@ function validate(dcat, callback) {
             store.addTriple(triple);
         } else {
 
+            for(key in validatorRules.keys){
+                validateClass(validatorRules[key].class, validatorRules[key].prefix, feedback);
+            }
+
             //Check Dataset class
-            var datasets = store.find(null, null , "http://www.w3.org/ns/dcat#Dataset");
+            /*var datasets = store.find(null, null , "http://www.w3.org/ns/dcat#Dataset");
         
             if(datasets.length == 0) feedback['errors'].push({"error":"The class Dataset is mandatory"});
 
@@ -7056,7 +7060,7 @@ function validate(dcat, callback) {
                 }
             } else {
                 feedback['errors'].push({"error":"The class Agent is mandatory"});
-            }
+            }*/
 
             //do the callback
             callback();
@@ -7065,6 +7069,49 @@ function validate(dcat, callback) {
 
     return feedback;
 }
+
+var validateClass = function(className, prefix, feedback) {
+
+    //find the class in the store
+    var classInfo = store.find(null, null , prefix + className);
+
+    //Check if the class is found in the store
+    if(classInfo.length >= 1) {
+
+        //If there are mutiple classes initialize check if this is permitted
+        if(classInfo.length > 1) {
+            if(!validatorRules[className].mutiple) feedback['errors'].push({"error":"Multiple " + className + "s are initialized"});
+        }
+
+        //loop through all the properties of a class
+        for(key in classInfo) {
+            var properties = store.find(classInfo[key].subject, null, null);
+      
+            for(propKey in properties) {
+                for(propRulesKey in validatorRules[className].properties) {
+                    if(properties[propKey].predicate == validatorRules[className].properties[propRulesKey].URI) {
+
+                        //Check literals
+                        if(validatorRules[className].properties[propRulesKey].Range == "rdfs:Literal") {
+                            if(!N3Util.isLiteral(properties[propKey].object)) {
+                                feedback['errors'].push({"error":"The object: " + properties[propKey].object + ", of the property: " + validatorRules[className].properties[propRulesKey].name + ", in the " + className + " class: " + datasets[key].subject + ", needs to be a rdfs:Literal"});
+                            }
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+    } else {
+
+        //If the class is mandatory add an error
+        if(validatorRules[className].required == "mandatory") feedback['errors'].push({"error":"The class " + className + " is mandatory"});
+
+        //If the class is required add a warning
+        else if(validatorRules[className].required == "recommended") feedback['warnings'].push({"error":"The class " + className + " is recommended"});
+    }
+};
 
 //the hard-coded validation rules of DCAT
 var validatorRules = new Array();
@@ -7075,6 +7122,7 @@ validatorRules['Catalog'] =
     "class": "Catalog",
     "prefix": "dcat",
     "required": "mandatory",
+    "mutiple": false,
     "URI": "http://www.w3.org/ns/dcat#Catalog",
     "properties": [ 
         {
@@ -7184,6 +7232,7 @@ validatorRules['CatalogRecord'] =
     "class": "CatalogRecord",
     "prefix": "dcat",
     "required": "optional",
+    "mutiple": false,
     "properties": [
         {
             "name": "type",
@@ -7236,6 +7285,7 @@ validatorRules['Dataset'] =
     "class": "Dataset",
     "prefix": "dcat",
     "required": "mandatory",
+    "mutiple": true,
     "properties": [
         {
             "name": "type",
@@ -7365,6 +7415,7 @@ validatorRules['Distribution'] =
     "class": "Distribution",
     "prefix": "dcat",
     "required": "recommended",
+    "mutiple": true,
     "properties": [
         {
             "name": "type",
@@ -7473,6 +7524,7 @@ validatorRules['ConceptScheme'] =
     "class": "ConceptScheme",
     "prefix": "skos",
     "required": "mandatory",
+    "mutiple": false,
     "properties": [
         {
             "name": "title",
@@ -7489,6 +7541,7 @@ validatorRules['Concept'] =
     "class": "Concept",
     "prefix": "skos",
     "required": "mandatory",
+    "mutiple": true,
     "properties": [
         {
             "name": "prefLabel",
@@ -7505,6 +7558,7 @@ validatorRules['Agent'] =
     "class": "Agent",
     "prefix": "foaf",
     "required": "mandatory",
+    "mutiple": true,
     "properties": [
         {
             "name": "name",
