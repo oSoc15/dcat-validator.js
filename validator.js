@@ -95,16 +95,21 @@ var validateClass = function(className, URI) {
 
                     //Check datetime literals    
                     } else if(jsonClass.properties[property].Range == "DateTime") {
-                        var date = foundObjects[foundObject].object;
-                        var dateRemovedQoutes = date.substring(1, date.length-1);
 
-                        if(!N3Util.isLiteral(foundObjects[foundObject].object) || isNaN(Date.parse(dateRemovedQoutes))) {
+                        //get the literal value (in case of n3)
+                        var date = N3Util.getLiteralValue(foundObjects[foundObject].object);
+
+                        if(!N3Util.isLiteral(foundObjects[foundObject].object) || isNaN(Date.parse(date))) {
                             feedback['errors'].push({"error":"The object: " + foundObjects[foundObject].object + ", of the property: " + jsonClass.properties[property].name + ", in the " + foundObjects[foundObject].subject + " class: " + jsonClass.class + ", needs to be a correct ISO 8601 date"});
                         }
 
                     //Check decimal literals
                     } else if(jsonClass.properties[property].Range == "Decimal") {
-                        if(!N3Util.isLiteral(foundObjects[foundObject].object) || isNaN(foundObjects[foundObject].object)) {
+
+                        //get the literal value (in case of n3)
+                        var decimal = N3Util.getLiteralValue(foundObjects[foundObject].object);
+
+                        if(!N3Util.isLiteral(foundObjects[foundObject].object) || isNaN(decimal)) {
                             feedback['errors'].push({"error":"The object: " + foundObjects[foundObject].object + ", of the property: " + jsonClass.properties[property].name + ", in the " + foundObjects[foundObject].subject + " class: " + jsonClass.class + ", needs to be a number"});
                         }
 
@@ -134,7 +139,7 @@ var validateClass = function(className, URI) {
                                 }
 
                                 //If the name of the new class is found, validate the new class
-                                if(newClassName != "") {
+                                if(newClassName != "" && newClassName != className) {
                                     validateClass(newClassName, foundObjects[foundObject].object);
                                 }
                             } else {

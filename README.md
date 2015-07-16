@@ -11,7 +11,7 @@ npm install
 ## Build
 
 ```
-browserify validator.js -o ./build/bundle.js
+browserify validator.js -o ./build/dcat-validator.bundle.js
 ```
 
 ## Usage
