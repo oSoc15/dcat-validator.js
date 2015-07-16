@@ -1,13 +1,14 @@
 {
-  "name": "validator",
+  "name": "dcat-validator",
   "version": "1.0.0",
   "description": "This is a library to validate DCAT syntax",
   "main": "validator.js",
   "dependencies": {
-    "browserify": "^10.2.4",
     "n3": "^0.4.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "browserify": "^10.2.6"
+    },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
