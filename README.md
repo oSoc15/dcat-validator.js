@@ -1,27 +1,42 @@
-DCAT validation library
+# DCAT validation library
 
-Author: Stan Callewaert
-Company: open Summer of code 2015
+Validates a DCAT turtle feed.
+
+## Installation
+
+```
+npm install
+```
+
+## Build
+
+```
+browserify validator.js -o ./build/bundle.js
+```
+
+## Usage
+
+```
+<script src="bundle.js"></script>
+<script>
+var feedback = validate('testDCATstring', callback);
+
+//console.log all errrors and warnings
+
+//errors
+for(i = 0; i < feedback['errors'].length; i++) {
+    console.log(feedback['errors'][i].error);
+}
+
+//warnings
+for(i = 0; i < feedback['warnings'].length; i++) {
+   console.log(feedback['warnings'][i].error);
+}
+</script>
+```
+
+## Author
+
+Author: Stan Callewaert  
+Company: open Summer of code 2015  
 Partner: Flemish government
-
-***********************
-Install the library
-***********************
-
-Install npm dependecies
-------------------------
-
-- Install node.js (https://nodejs.org/)
-- Command prompt: npm install
-
-Make a new browserisfied file (bundle.js in the build folder)
-------------------------
-
-- Install browserify (http://browserify.org/)
-- Command prompt: browserify validator.js -o bundle.js, then replace the old bundle.js by the new one
-
-***********************
-Function of the library
-***********************
-
-This library validates a DCAT turtle feed.
