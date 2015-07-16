@@ -6932,7 +6932,11 @@ var validateClass = function(className, URI) {
 
             //Check if their are multiple objects found and if it is allowed, if not put an error
             if(foundObjects.length > 1 && !jsonClass.properties[property].multiple) {
-                feedback['errors'].push({"error":"Multiple properties: " + foundObjects[0].predicate + " found in the class: " + foundObjects[0].predicate});
+                if(typeof feedback['errors'][URI] == 'undefined') {
+                    feedback['errors'][URI] = [];
+                }
+
+                feedback['errors'][URI].push({"error":"Objects: " + foundObjects[0].object + ", of the property: " + jsonClass.properties[property].name + ", in the " + jsonClass.class + " class: " + foundObjects[0].subject + ", can't be initialized more than once"});
             } else {
 
                 //Loop through the found objects and validate them
@@ -6941,7 +6945,11 @@ var validateClass = function(className, URI) {
                     //Check literals
                     if(jsonClass.properties[property].Range == "Literal") {
                         if(!N3Util.isLiteral(foundObjects[foundObject].object)) {
-                            feedback['errors'].push({"error":"The object: " + foundObjects[foundObject].object + ", of the property: " + jsonClass.properties[property].name + ", in the " + foundObjects[foundObject].subject + " class: " + jsonClass.class + ", needs to be a Literal"});
+                            if(typeof feedback['errors'][URI] == 'undefined') {
+                                feedback['errors'][URI] = [];
+                            }
+
+                            feedback['errors'][URI].push({"error":"The object: " + foundObjects[foundObject].object + ", of the property: " + jsonClass.properties[property].name + ", in the " + jsonClass.class + " class: " +  foundObjects[foundObject].subject + ", needs to be a Literal"});
                         }
 
                     //Check datetime literals    
@@ -6950,8 +6958,14 @@ var validateClass = function(className, URI) {
                         //get the literal value (in case of n3)
                         var date = N3Util.getLiteralValue(foundObjects[foundObject].object);
 
+                        if(date[0] = "\"") date = date.substring(1, date.length-1);
+
                         if(!N3Util.isLiteral(foundObjects[foundObject].object) || isNaN(Date.parse(date))) {
-                            feedback['errors'].push({"error":"The object: " + foundObjects[foundObject].object + ", of the property: " + jsonClass.properties[property].name + ", in the " + foundObjects[foundObject].subject + " class: " + jsonClass.class + ", needs to be a correct ISO 8601 date"});
+                            if(typeof feedback['errors'][URI] == 'undefined') {
+                                feedback['errors'][URI] = [];
+                            }
+
+                            feedback['errors'][URI].push({"error":"The object: " + foundObjects[foundObject].object + ", of the property: " + jsonClass.properties[property].name + ", in the " + jsonClass.class + " class: " + foundObjects[foundObject].subject + ", needs to be a correct ISO 8601 date"});
                         }
 
                     //Check decimal literals
@@ -6961,7 +6975,11 @@ var validateClass = function(className, URI) {
                         var decimal = N3Util.getLiteralValue(foundObjects[foundObject].object);
 
                         if(!N3Util.isLiteral(foundObjects[foundObject].object) || isNaN(decimal)) {
-                            feedback['errors'].push({"error":"The object: " + foundObjects[foundObject].object + ", of the property: " + jsonClass.properties[property].name + ", in the " + foundObjects[foundObject].subject + " class: " + jsonClass.class + ", needs to be a number"});
+                            if(typeof feedback['errors'][URI] == 'undefined') {
+                                feedback['errors'][URI] = [];
+                            }
+
+                            feedback['errors'][URI].push({"error":"The object: " + foundObjects[foundObject].object + ", of the property: " + jsonClass.properties[property].name + ", in the " + jsonClass.class + " class: " + foundObjects[foundObject].subject + ", needs to be a number"});
                         }
 
                     //Check URI's
@@ -6970,7 +6988,11 @@ var validateClass = function(className, URI) {
                         //check if the found object is a URI and if it may be a literal if it doesn't put an error
                         if(!N3Util.isIRI(foundObjects[foundObject].object)) {
                             if(jsonClass.properties[property].Range != "Anything") {
-                                feedback['errors'].push({"error":"The object: " + foundObjects[foundObject].object + ", of the property: " + jsonClass.properties[property].name + ", in the " + foundObjects[foundObject].subject + " class: " + jsonClass.class + ", needs to be a URI"});
+                                if(typeof feedback['errors'][URI] == 'undefined') {
+                                    feedback['errors'][URI] = [];
+                                }
+
+                                feedback['errors'][URI].push({"error":"The object: " + foundObjects[foundObject].object + ", of the property: " + jsonClass.properties[property].name + ", in the " + jsonClass.class + " class: " + foundObjects[foundObject].subject + ", needs to be a URI"});
                             }
                         } else {
 
@@ -6997,7 +7019,11 @@ var validateClass = function(className, URI) {
 
                                 //If the range of the property is not "Anything" put error 
                                 if(jsonClass.properties[property].name != "type" && jsonClass.properties[property].Range != "Anything") {
-                                    feedback['errors'].push({"error":"The class: " + jsonClass.properties[property].Range + ", with URI: " + foundObjects[foundObject].object + " needs to be initialized"});
+                                    if(typeof feedback['errors'][URI] == 'undefined') {
+                                        feedback['errors'][URI] = [];
+                                    }
+
+                                    feedback['errors'][URI].push({"error":"The class: " + jsonClass.properties[property].Range + ", with URI: " + foundObjects[foundObject].object + " needs to be initialized"});
                                 }
                             }
                         }
@@ -7007,9 +7033,17 @@ var validateClass = function(className, URI) {
         } else {
             if(foundObjects.length == 0) {               
                 if(jsonClass.properties[property].required == "mandatory") {
-                    feedback['errors'].push({"error":"The property: " + jsonClass.properties[property].name + ", of the class: " + jsonClass.class + " is mandatory"});
+                    if(typeof feedback['errors'][URI] == 'undefined') {
+                        feedback['errors'][URI] = [];
+                    }
+
+                    feedback['errors'][URI].push({"error":"The property: " + jsonClass.properties[property].name + ", of the " + jsonClass.class + " class: " + URI + " is mandatory"});
                 } else if(jsonClass.properties[property].required == "recommended") {
-                    feedback['warnings'].push({"error":"The property: " + jsonClass.properties[property].name + ", of the class: " + jsonClass.class + " is recommended"});
+                    if(typeof feedback['warnings'][URI] == 'undefined') {
+                        feedback['warnings'][URI] = [];
+                    }
+
+                    feedback['warnings'][URI].push({"error":"The property: " + jsonClass.properties[property].name + ", of the " + jsonClass.class + " class: " + URI + " is recommended"});
                 }
             }
         }
@@ -7308,7 +7342,7 @@ validatorRules['optional'] =
             {
                 "name": "sample",
                 "prefix": "adms",
-                "required": "recommended",
+                "required": "optional",
                 "Range": "Anything",
                 "URI": "http://www.w3.org/ns/adms#sample",
                 "multiple": false
