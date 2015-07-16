@@ -1,6 +1,6 @@
 {
   "name": "dcat-validator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "This is a library to validate DCAT syntax",
   "main": "validator.js",
   "dependencies": {
