@@ -3,7 +3,7 @@ var N3 = require('./node_modules/n3/n3');
 require('./node_modules/n3/n3').Util(global);
 
 //This line makes sure that the validate function can be used in different js file
-if(window) window.validate = validate;
+if(typeof window !== 'undefined') window.validate = validate;
 
 //variable that can store all the triplets of the rdf file
 var store;
