@@ -6854,7 +6854,7 @@ var N3 = require('./node_modules/n3/n3');
 require('./node_modules/n3/n3').Util(global);
 
 //This line makes sure that the validate function can be used in different js file
-if(window) window.validate = validate;
+if(typeof window !== 'undefined') window.validate = validate;
 
 //variable that can store all the triplets of the rdf file
 var store;
@@ -6864,6 +6864,9 @@ var N3Util;
 
 //create an array with errors and warnings that contain objects with errror messages
 var feedback;
+
+//An array of URI's to check if a certain class isn't already checked
+var checkedClasses = [];
 
 //The validation function with a callback to start the code after this function is done
 function validate(dcat, callback) {
@@ -6895,6 +6898,7 @@ function validate(dcat, callback) {
                 //Check if only one catalog is initialized
                 if(classes.length == 1) {
                     for(keyClass in classes) {
+                        checkedClasses.push(classes[keyClass].subject);
                         validateClass(className, classes[keyClass].subject);
                     }
                 } else if(classes.length == 0) {
@@ -7013,7 +7017,14 @@ var validateClass = function(className, URI) {
 
                                 //If the name of the new class is found, validate the new class
                                 if(newClassName != "" && newClassName != className) {
-                                    validateClass(newClassName, foundObjects[foundObject].object);
+
+                                    //Check if the new class is already validated
+                                    //If it is do nothing
+                                    //If it isn't check the new class
+                                    if(isClassChecked(foundObjects[foundObject].object)) {
+                                        checkedClasses.push(foundObjects[foundObject].object);
+                                        validateClass(newClassName, foundObjects[foundObject].object);
+                                    }  
                                 }
                             } else {
 
@@ -7049,6 +7060,21 @@ var validateClass = function(className, URI) {
         }
     }
 };
+
+//Method to check if the a certain class is already validated before
+var isClassChecked = function(URI) {
+    var checked = false;
+
+    //loop over all the uri's of the already validated classes
+    for(uriClass in checkedClasses) {
+        if(checkedClasses[uriClass] == URI) {
+            checked = true;
+            break;
+        }
+    }
+
+    return checked;
+}
 
 //the hard-coded validation rules of DCAT
 var validatorRules = new Array();
@@ -7586,5 +7612,6 @@ validatorRules['optional'] =
         ]
     }
 };
+
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./node_modules/n3/n3":32}]},{},[33]);
