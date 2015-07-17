@@ -190,8 +190,30 @@ var validateClass = function(className, URI) {
 
                                 //If the range of the property is not 'Anything' put error 
                                 if(jsonClass.properties[property].name != 'type' && jsonClass.properties[property].Range != 'Anything') {
-                                    if(typeof feedback['errors'][jsonClass.properties[property].Range + ' class: ' + foundObjects[foundObject].object] == 'undefined') {
-                                        feedback['errors'][jsonClass.properties[property].Range + ' class: ' + foundObjects[foundObject].object + ' needs to be initialized'] = [];
+
+                                    var uninitializedClassName = '';
+
+                                    //Check the uninitialized class name
+                                    for(var checkClass in validatorRules['optional']) {
+                                        if(validatorRules['optional'][checkClass].URI == jsonClass.properties[property].Range) {
+                                            uninitializedClassName = validatorRules['optional'][checkClass].class;
+                                            break;
+                                        }
+                                    }
+
+                                    //Check if the uninitializedClassName is found
+                                    if(uninitializedClassName != '') {
+
+                                        //Check if the error is already displayed, if not put error in array
+                                        if(typeof feedback['errors'][uninitializedClassName + ' class: ' + foundObjects[foundObject].object] == 'undefined') {
+                                            feedback['errors'][uninitializedClassName + ' class: ' + foundObjects[foundObject].object + ' needs to be initialized'] = [];
+                                        }
+                                    } else {
+                                        
+                                        //Check if the error is already displayed, if not put error in array
+                                        if(typeof feedback['errors'][jsonClass.properties[property].Range + ' class: ' + foundObjects[foundObject].object] == 'undefined') {
+                                            feedback['errors'][jsonClass.properties[property].Range + ' class: ' + foundObjects[foundObject].object + ' needs to be initialized'] = [];
+                                        }
                                     }
                                 }
                             }
