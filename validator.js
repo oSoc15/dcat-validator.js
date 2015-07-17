@@ -125,7 +125,7 @@ var validateClass = function(className, URI) {
 
                         //If the object isn't a literal or the date isn't valid put an error
                         if(!N3Util.isLiteral(foundObjects[foundObject].object) || !isDate) {
-                            if(typeof feedback['errors'][className + ' class: ' + URI] == 'undefined') {
+                            if(typeof feedzouback['errors'][className + ' class: ' + URI] == 'undefined') {
                                 feedback['errors'][className + ' class: ' + URI] = [];
                             }
 
