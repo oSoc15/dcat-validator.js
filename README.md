@@ -21,7 +21,7 @@ browserify validator.js -o ./build/dcat-validator.bundle.js
 ```
 <script src="dcat-validator.bundle.js"></script>
 <script>
-var feedback = validate('DCATstring', callback);
+var feedback = validate('DCATstring', validatorRules, callback);
 
 //console.log all errrors and warnings
 
