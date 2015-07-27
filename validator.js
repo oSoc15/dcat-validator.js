@@ -405,15 +405,7 @@ validatorRules['optional'] =
                 'required': 'mandatory',
                 'Range': 'Literal',
                 'URI': 'http://xmlns.com/foaf/0.1/name',
-                'multiple': false
-            },
-            {
-                'name': 'type',
-                'prefix': 'dct',
-                'required': 'recommended',
-                'Range': 'skos:Concept',
-                'URI': 'http://www.w3.org/2004/02/skos/core#type',
-                'multiple': false
+                'multiple': true
             }
         ]
     },
