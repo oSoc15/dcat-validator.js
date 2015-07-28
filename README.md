@@ -18,6 +18,8 @@ browserify validator.js -o ./build/dcat-validator.bundle.js
 
 ### Log errors and warnings
 
+If you want to use this library without any changes just get the dcat-validator.bundle.js file in the build folder and use the code below.
+
 ```
 <script src="dcat-validator.bundle.js"></script>
 <script>
