@@ -57,9 +57,31 @@ function validate(dcat, rules, callback) {
                         validateClass(className, classes[keyClass].subject);
                     }
                 } else if(classes.length === 0) {
-                    feedback['errors']['The class: Catalog, is mandatory'] = [];
+
+                    //Push all the information about the error into the array
+                    feedback['errors'].push({
+                        'class': 'Catalog',
+                        'URIClass': null,
+                        'error': {
+                            'message': 'is mandatory',
+                            'property': null,
+                            'URIProperty': null,
+                            'valueProperty': null
+                        }
+                    });
                 } else {
-                    feedback['errors']['Multiple Catalog classes initialized'] = [];
+
+                    //Push all the information about the error into the array
+                    feedback['errors'].push({
+                        'class': 'Catalog',
+                        'URIClass': null,
+                        'error': {
+                            'message': 'mutiple',
+                            'property': null,
+                            'URIProperty': null,
+                            'valueProperty': null
+                        }
+                    });
                 }
             }
            
@@ -94,18 +116,18 @@ var validateClass = function(className, URI) {
 
             //Check if their are multiple objects found and if it is allowed, if not put an error
             if(foundObjects.length > 1 && !jsonClass.properties[property].multiple) {
-                if(typeof feedback['errors'][className + ' class: ' + URI] == 'undefined') {
-                    feedback['errors'][className + ' class: ' + URI] = [];
-                }
-
-                console.log('The property: ' + jsonClass.properties[property].name + ', can\'t have multiple objects');
-
-                for(object in foundObjects) {
-                    //console.log(N3Util.getLiteralLanguage(foundObjects[object].object));
-                    console.log(foundObjects[object]);
-                }
-
-                feedback['errors'][className + ' class: ' + URI].push({'error':'The property: ' + jsonClass.properties[property].name + ', can\'t have multiple objects'});
+                
+                //Push all the information about the error into the array
+                feedback['errors'].push({
+                    'class': className,
+                    'URIClass': URI,
+                    'error': {
+                        'message': 'can\'t have multiple objects',
+                        'property': jsonClass.properties[property].name,
+                        'URIProperty': jsonClass.properties[property].URI,
+                        'valueProperty': null
+                    }
+                });
             } else {
 
                 //Loop through the found objects and validate them
@@ -114,11 +136,18 @@ var validateClass = function(className, URI) {
                     //Check literals
                     if(jsonClass.properties[property].Range == 'Literal') {
                         if(!N3Util.isLiteral(foundObjects[foundObject].object)) {
-                            if(typeof feedback['errors'][className + ' class: ' + URI] == 'undefined') {
-                                feedback['errors'][className + ' class: ' + URI] = [];
-                            }
 
-                            feedback['errors'][className + ' class: ' + URI].push({'error':'The object: ' + foundObjects[foundObject].object + ', of the property: ' + jsonClass.properties[property].name + ', needs to be a Literal'});
+                            //Push all the information about the error into the array
+                            feedback['errors'].push({
+                                'class': className,
+                                'URIClass': URI,
+                                'error': {
+                                    'message': 'needs to be a Literal',
+                                    'property': jsonClass.properties[property].name,
+                                    'URIProperty': jsonClass.properties[property].URI,
+                                    'valueProperty': foundObjects[foundObject].object
+                                }
+                            });
                         }
 
                     //Check datetime literals    
@@ -136,11 +165,18 @@ var validateClass = function(className, URI) {
 
                         //If the object isn't a literal or the date isn't valid put an error
                         if(!N3Util.isLiteral(foundObjects[foundObject].object) || !isDate) {
-                            if(typeof feedzouback['errors'][className + ' class: ' + URI] == 'undefined') {
-                                feedback['errors'][className + ' class: ' + URI] = [];
-                            }
 
-                            feedback['errors'][className + ' class: ' + URI].push({'error':'The object: ' + foundObjects[foundObject].object + ', of the property: ' + jsonClass.properties[property].name + ', needs to be a correct ISO 8601 date'});
+                            //Push all the information about the error into the array
+                            feedback['errors'].push({
+                                'class': className,
+                                'URIClass': URI,
+                                'error': {
+                                    'message': 'needs to be a correct ISO 8601 date',
+                                    'property': jsonClass.properties[property].name,
+                                    'URIProperty': jsonClass.properties[property].URI,
+                                    'valueProperty': foundObjects[foundObject].object
+                                }
+                            });
                         }
 
                     //Check decimal literals
@@ -150,11 +186,18 @@ var validateClass = function(className, URI) {
                         var decimal = N3Util.getLiteralValue(foundObjects[foundObject].object);
 
                         if(!N3Util.isLiteral(foundObjects[foundObject].object) || isNaN(decimal)) {
-                            if(typeof feedback['errors'][className + ' class: ' + URI] == 'undefined') {
-                                feedback['errors'][className + ' class: ' + URI] = [];
-                            }
 
-                            feedback['errors'][className + ' class: ' + URI].push({'error':'The object: ' + foundObjects[foundObject].object + ', of the property: ' + jsonClass.properties[property].name + ', needs to be a number'});
+                            //Push all the information about the error into the array
+                            feedback['errors'].push({
+                                'class': className,
+                                'URIClass': URI,
+                                'error': {
+                                    'message': 'needs to be a number',
+                                    'property': jsonClass.properties[property].name,
+                                    'URIProperty': jsonClass.properties[property].URI,
+                                    'valueProperty': foundObjects[foundObject].object
+                                }
+                            });
                         }
 
                     //Check URI's
@@ -163,11 +206,18 @@ var validateClass = function(className, URI) {
                         //check if the found object is a URI and if it may be a literal if it doesn't put an error
                         if(!N3Util.isIRI(foundObjects[foundObject].object)) {
                             if(jsonClass.properties[property].Range != 'Anything') {
-                                if(typeof feedback['errors'][className + ' class: ' + URI] == 'undefined') {
-                                    feedback['errors'][className + ' class: ' + URI] = [];
-                                }
-
-                                feedback['errors'][className + ' class: ' + URI].push({'error':'The object: ' + foundObjects[foundObject].object + ', of the property: ' + jsonClass.properties[property].name + ', needs to be a URI'});
+                            
+                                //Push all the information about the error into the array
+                                feedback['errors'].push({
+                                    'class': className,
+                                    'URIClass': URI,
+                                    'error': {
+                                        'message': 'needs to be a URI',
+                                        'property': jsonClass.properties[property].name,
+                                        'URIProperty': jsonClass.properties[property].URI,
+                                        'valueProperty': foundObjects[foundObject].object
+                                    }
+                                });
                             }
                         } else {
 
@@ -215,16 +265,30 @@ var validateClass = function(className, URI) {
                                     //Check if the uninitializedClassName is found
                                     if(uninitializedClassName != '') {
 
-                                        //Check if the error is already displayed, if not put error in array
-                                        if(typeof feedback['errors'][uninitializedClassName + ' class: ' + foundObjects[foundObject].object] == 'undefined') {
-                                            feedback['errors'][uninitializedClassName + ' class: ' + foundObjects[foundObject].object + ' needs to be initialized'] = [];
-                                        }
+                                        //Push all the information about the error into the array
+                                        feedback['errors'].push({
+                                            'class': uninitializedClassName,
+                                            'URIClass': foundObjects[foundObject].object,
+                                            'error': {
+                                                'message': 'needs to be initialized',
+                                                'property': null,
+                                                'URIProperty': null,
+                                                'valueProperty': null
+                                            }
+                                        });
                                     } else {
-                                        
-                                        //Check if the error is already displayed, if not put error in array
-                                        if(typeof feedback['errors'][jsonClass.properties[property].Range + ' class: ' + foundObjects[foundObject].object] == 'undefined') {
-                                            feedback['errors'][jsonClass.properties[property].Range + ' class: ' + foundObjects[foundObject].object + ' needs to be initialized'] = [];
-                                        }
+
+                                        //Push all the information about the error into the array
+                                        feedback['errors'].push({
+                                            'class': jsonClass.properties[property].Range,
+                                            'URIClass': foundObjects[foundObject].object,
+                                            'error': {
+                                                'message': 'needs to be initialized',
+                                                'property': null,
+                                                'URIProperty': null,
+                                                'valueProperty': null
+                                            }
+                                        });
                                     }
                                 }
                             }
@@ -239,19 +303,32 @@ var validateClass = function(className, URI) {
 
                 //If the property is mandatory put an error in the array            
                 if(jsonClass.properties[property].required == 'mandatory') {
-                    if(typeof feedback['errors'][className + ' class: ' + URI] == 'undefined') {
-                        feedback['errors'][className + ' class: ' + URI] = [];
-                    }
 
-                    feedback['errors'][className + ' class: ' + URI].push({'error':'The property: ' + jsonClass.properties[property].name + ', is mandatory'});
-
+                    //Push all the information about the error into the array
+                    feedback['errors'].push({
+                        'class': className,
+                        'URIClass': URI,
+                        'error': {
+                            'message': 'is mandatory',
+                            'property': jsonClass.properties[property].name,
+                            'URIProperty': jsonClass.properties[property].URI,
+                            'valueProperty': null
+                        }
+                    });
                 //If the property is recommended put a warning in the array  
                 } else if(jsonClass.properties[property].required == 'recommended') {
-                    if(typeof feedback['warnings'][className + ' class: ' + URI] == 'undefined') {
-                        feedback['warnings'][className + ' class: ' + URI] = [];
-                    }
 
-                    feedback['warnings'][className + ' class: ' + URI].push({'error':'The property: ' + jsonClass.properties[property].name + ', is recommended'});
+                    //Push all the information about the error into the array
+                    feedback['warnings'].push({
+                        'class': className,
+                        'URIClass': URI,
+                        'error': {
+                            'message': 'is recommended',
+                            'property': jsonClass.properties[property].name,
+                            'URIProperty': jsonClass.properties[property].URI,
+                            'valueProperty': null
+                        }
+                    });
                 }
             }
         }
