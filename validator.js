@@ -304,7 +304,7 @@ var validateClass = function(className, URI) {
                                         //Check if the specific array already exists
                                         if(feedback['errors'][uninitializedClassName + ' ' + foundObjects[foundObject].object] == undefined) {
                                             feedback['errors'][uninitializedClassName + ' ' + foundObjects[foundObject].object] = {
-                                                'class': jsonClass.properties[property].Range,
+                                                'class': uninitializedClassName,
                                                 'URIClass': foundObjects[foundObject].object,
                                                 'error': []
                                             };

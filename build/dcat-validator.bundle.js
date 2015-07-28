@@ -6913,8 +6913,8 @@ function validate(dcat, rules, callback) {
                     if(feedback['errors']['Catalog '] == undefined) {
 
                         feedback['errors']['Catalog '] = {
-                            'class': className,
-                            'URIClass': URI,
+                            'class': 'Catalog',
+                            'URIClass': null,
                             'error': []
                         };
                     }
@@ -6931,8 +6931,8 @@ function validate(dcat, rules, callback) {
                     //Check if the specific array already exists
                     if(feedback['errors']['Catalog '] == undefined) {
                         feedback['errors']['Catalog '] = {
-                            'class': className,
-                            'URIClass': URI,
+                            'class': 'Catalog',
+                            'URIClass': null,
                             'error': []
                         };
                     }
@@ -7155,7 +7155,7 @@ var validateClass = function(className, URI) {
                                         //Check if the specific array already exists
                                         if(feedback['errors'][uninitializedClassName + ' ' + foundObjects[foundObject].object] == undefined) {
                                             feedback['errors'][uninitializedClassName + ' ' + foundObjects[foundObject].object] = {
-                                                'class': jsonClass.properties[property].Range,
+                                                'class': uninitializedClassName,
                                                 'URIClass': foundObjects[foundObject].object,
                                                 'error': []
                                             };
