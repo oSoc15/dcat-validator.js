@@ -416,7 +416,7 @@ validatorRules['optional'] =
             {
                 'name': 'accessURL',
                 'prefix': 'dcat',
-                'required': 'optional',
+                'required': 'mandatory',
                 'Range': 'Resource',
                 'URI': 'http://www.w3.org/ns/dcat#accessURL',
                 'mutiple': false
@@ -424,7 +424,7 @@ validatorRules['optional'] =
             {
                 'name': 'downloadURL',
                 'prefix': 'dcat',
-                'required': 'mandatory',
+                'required': 'optional',
                 'Range': 'Resource',
                 'URI': 'http://www.w3.org/ns/dcat#downloadURL',
                 'mutiple': false
