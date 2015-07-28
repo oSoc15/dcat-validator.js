@@ -23,19 +23,19 @@ browserify validator.js -o ./build/dcat-validator.bundle.js
 <script>
 var feedback = validate('DCATstring', validatorRules, callback);
 
-//console.log all errrors and warnings
+//console.log all the messages of the errrors and warnings 
 
 //errors
 for(resource in feedback['errors']) {
-    for(error in feedback['errors'][resource]) {
-        console.log(feedback['errors'][resource][error].error);
+    for(error in feedback['errors'][resource].error) {
+        console.log(feedback['errors'][resource].error[error].message);
     }
 }
 
 //warnings
 for(resource in feedback['warnings']) {
-    for(warning in feedback['warnings'][resource]) {
-        console.log(feedback['warnings'][resource][warning].error);
+    for(warning in feedback['warnings'][resource].error) {
+        console.log(feedback['warnings'][resource].error[warning].message);
     }
 }
 </script>
