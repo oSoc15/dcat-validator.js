@@ -117,7 +117,7 @@ validatorRules['mandatory'] =
             },
             {
                 'name': 'themes',
-                'prefix': 'dcat',
+                'prefix': 'dct',
                 'required': 'recommended',
                 'Range': 'http://www.w3.org/2004/02/skos/core#ConceptScheme',
                 'URI': 'http://purl.org/dc/terms/themeTaxonomy',
@@ -309,7 +309,7 @@ validatorRules['optional'] =
                 'required': 'recommended',
                 'Range': 'Anything',
                 'URI': 'http://www.w3.org/ns/dcat#contactPoint',
-                'multiple': false
+                'multiple': true
             },
             {
                 'name': 'temporal',
