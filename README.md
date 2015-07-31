@@ -23,21 +23,25 @@ If you want to use this library without any changes just get the dcat-validator.
 ```
 <script src="dcat-validator.bundle.js"></script>
 <script>
+
+// Call the library function validate
 var feedback = validate('DCATstring', validatorRules, callback);
 
-//console.log all the messages of the errrors and warnings 
+// Console.log all the messages of the errrors and warnings
+var callback = function() {
 
-//errors
-for(resource in feedback['errors']) {
-    for(error in feedback['errors'][resource].error) {
-        console.log(feedback['errors'][resource].error[error].message);
+    // Errors
+    for(resource in feedback['errors']) {
+        for(error in feedback['errors'][resource].error) {
+            console.log(feedback['errors'][resource].error[error].message);
+        }
     }
-}
 
-//warnings
-for(resource in feedback['warnings']) {
-    for(warning in feedback['warnings'][resource].error) {
-        console.log(feedback['warnings'][resource].error[warning].message);
+    // Warnings
+    for(resource in feedback['warnings']) {
+        for(warning in feedback['warnings'][resource].error) {
+            console.log(feedback['warnings'][resource].error[warning].message);
+        }
     }
 }
 </script>
