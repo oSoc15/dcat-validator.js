@@ -1,0 +1,24 @@
+{
+  "name": "DCAT validator",
+  "version": "1.2.1",
+  "homepage": "https://github.com/oSoc15/dcat-validator.js",
+  "authors": [
+    "Stan Callewaert <callewaert.stan@gmail.com>"
+  ],
+  "description": "This is a library to validate DCAT syntax",
+  "main": "validator.js",
+  "moduleType": [
+    "node"
+  ],
+  "keywords": [
+    "DCAT"
+  ],
+  "license": "ISC",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
